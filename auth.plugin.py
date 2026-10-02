@@ -34,7 +34,6 @@ def main(update_var, get_var, list_user, send):
 
     def on_connect(user_id):
         states[user_id] = {"state": "anonymous"}
-        send(user_id)
 
     def on_disconnect(user_id):
         states.pop(user_id, None)

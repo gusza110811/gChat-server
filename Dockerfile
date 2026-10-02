@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /app/var
 
 # Server Configuration
 ENV GCHAT_HOST="0.0.0.0"
@@ -37,12 +37,12 @@ RUN adduser \
 USER appuser
 
 # Copy the source code into the container.
-COPY ./server.py ./server.py
-COPY ./commands.py ./commands.py
-COPY *.plugin.py ./
+COPY ./server.py /app/server.py
+COPY ./commands.py /app/commands.py
+COPY *.plugin.py /app/
 
 # Expose the port that the application listens on.
 EXPOSE 3355
 
 # Run the application.
-CMD ["python3", "server.py", "--messages", "/app/var/messages.json", "--env"]
+CMD ["python3", "/app/server.py", "--env"]
