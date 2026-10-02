@@ -39,7 +39,6 @@ USER appuser
 # Copy the source code into the container.
 COPY ./server.py /app/server.py
 COPY ./commands.py /app/commands.py
-COPY *.plugin.py /app/
 
 # Expose the port that the application listens on.
 EXPOSE 3355

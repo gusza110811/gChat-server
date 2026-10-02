@@ -11,7 +11,7 @@ def main(update_var, get_var, list_user, send):
     BOT_NAME = "authbot"
     STORAGE_FILE  = "gchat_users.json"
 
-    registered = {}
+    registered = json.load(open(STORAGE_FILE))
 
     states = {}
 
