@@ -117,7 +117,7 @@ def main(update_var, get_var, list_user, send):
             update_var(user_id, "channel", AUTH_CHANNEL_PREFIX + f"-{user_id}")
             states[user_id] = {"state": "awaiting_credentials"}
             send_to_user(user_id, "Welcome! Please authenticate with: {name};{pass}")
-            return "redirect"
+            return "shadow"
         
         if req.startswith("auth-"):
             return "Direct access to this channel is reserved. If you are trying to authenticate, joining #auth will redirect you to the correct channel"
