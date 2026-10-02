@@ -33,9 +33,8 @@ def main(update_var, get_var, list_user, send):
         send(BOT_NAME, channel, message)
 
     def on_connect(user_id):
-        update_var(user_id, "channel", AUTH_CHANNEL_PREFIX + f"-{user_id}")
-        states[user_id] = {"state": "awaiting_credentials"}
-        send_to_user(user_id, "Welcome! Please authenticate with: {name};{pass}")
+        states[user_id] = {"state": "anonymous"}
+        send(user_id)
 
     def on_disconnect(user_id):
         states.pop(user_id, None)
@@ -48,17 +47,15 @@ def main(update_var, get_var, list_user, send):
         if state["state"] == "authenticated":
             return
 
-        if channel != AUTH_CHANNEL_PREFIX + f"-{user_id}":
-            update_var(user_id, "channel", AUTH_CHANNEL_PREFIX + f"-{user_id}")
-            send_to_user(user_id, "You must authenticate first. Please use: {name};{pass}")
-            return "Shadowed"
+        if state["state"] == "anonymous":
+            return
 
         text = message.strip()
 
         if state["state"] == "awaiting_credentials":
             if ";" not in text:
                 send_to_user(user_id, "Invalid format. Please use: {name};{pass}")
-                return "Shadowed"
+                return "shadow"
 
             name, password = text.split(";", 1)
             name = name.strip()
@@ -66,7 +63,7 @@ def main(update_var, get_var, list_user, send):
 
             if not name or not password:
                 send_to_user(user_id, "Name and password cannot be empty. Please use: {name};{pass}")
-                return "Shadowed"
+                return "shadow"
 
             if name in registered:
                 if registered[name] == password:
@@ -107,18 +104,23 @@ def main(update_var, get_var, list_user, send):
                 state.pop("pending_name", None)
                 state.pop("pending_pass", None)
 
-        return "Shadowed"
+        return "shadow"
 
     def on_change_name(user_id, req):
         state = states.get(user_id)
         if state and state["state"] != "authenticated":
-            return "Manual name changes not allowed"
+            return "Manual name changes not allowed; If you are trying to log in or register, join #auth"
         return 0
 
     def on_change_channel(user_id, req):
-        state = states.get(user_id)
-        if state and state["state"] != "authenticated":
-            return "Cannot change channels until authenticated"
+        if req == "auth":
+            update_var(user_id, "channel", AUTH_CHANNEL_PREFIX + f"-{user_id}")
+            states[user_id] = {"state": "awaiting_credentials"}
+            send_to_user(user_id, "Welcome! Please authenticate with: {name};{pass}")
+            return "redirect"
+        
+        if req.startswith("auth-"):
+            return "Direct access to this channel is reserved. If you are trying to authenticate, joining #auth will redirect you to the correct channel"
         return 0
 
     def on_shutdown():

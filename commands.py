@@ -50,7 +50,8 @@ class Commands:
                 try:
                     result = handler(self.uid, newname)
                     if result:
-                        self.socket.send(("ERR Rejected RejectedUsername " + result + "\n").encode("utf-8"))
+                        if result != "Shadowed":
+                            self.socket.send(("ERR Rejected RejectedUsername " + result + "\n").encode("utf-8"))
                         return
                 except Exception as e:
                     print(f"[ERROR] Plugin handler error: {e}")
@@ -77,11 +78,14 @@ class Commands:
             self.socket.send(b"ERR Rejected RejectedChannel Cannot use semicolon\n")
             return
 
+        if target_channel.startswith("#"): target_channel = target_channel[1:]
+
         for handler in self.plugin_change_channel_handlers:
             try:
                 result = handler(self.uid, target_channel)
                 if result:
-                    self.socket.send(("ERR Rejected RejectedChannel " + result + "\n").encode("utf-8"))
+                    if result != "shadow":
+                        self.socket.send(("ERR Rejected RejectedChannel " + result + "\n").encode("utf-8"))
                     return
             except Exception as e:
                 print(f"[ERROR] Plugin handler error: {e}")
@@ -102,7 +106,7 @@ class Commands:
             try:
                 result = handler(self.uid, self.server.channel, arg)
                 if result:
-                    if result != "Shadowed":
+                    if result != "shadow":
                         self.socket.send(("ERR Rejected Unauthorized " + result + "\n").encode("utf-8"))
                     return
             except Exception as e:

@@ -213,6 +213,10 @@ if __name__ == "__main__":
                     "maxClient": maxClient,
                 }
                 json.dump(configs,config, indent=4)
+            tmp = plugins
+            plugins = []
+            for item in tmp:
+                plugins.extend(glob.glob(item))
     else:
         host = os.getenv("GCHAT_HOST", host)
         port = int(os.getenv("GCHAT_PORT", port))

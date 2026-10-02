@@ -156,7 +156,7 @@ def on_receive(user_id, channel, message):
 
 Return values:
 - `0` or `None`: allow the message
-- `"Shadowed"`: suppress the message and do not broadcast it
+- `"shadow"`: suppress the message and do not broadcast it
 - any other non-empty string: reject the message with an error like:
   - `ERR Rejected Unauthorized <reason>`
 
@@ -185,6 +185,7 @@ def on_change_name(user_id, new_name):
 
 Return values:
 - `0` or `None`: allow rename
+- `"shadow"`: Skip normal rename process
 - non-empty string: reject rename with:
   - `ERR Rejected RejectedUsername <reason>`
 
@@ -209,6 +210,7 @@ def on_change_channel(user_id, new_channel):
 
 Return values:
 - `0` or `None`: allow join
+- `"shadow"`: Skip normal channel changing process
 - non-empty string: reject join with:
   - `ERR Rejected RejectedChannel <reason>`
 
@@ -256,37 +258,33 @@ def main(update_var, get_var, list_user, send):
     }
 ```
 
-## 6. Example: authentication plugin
-
-The included `auth.plugin.py` is the reference plugin for this system.
+## 6. Example: Greeter
 
 It does the following:
 
-- creates a private auth channel for each user
-- intercepts chat messages until the user authenticates
-- validates `{name};{pass}` input
-- stores registered users in a JSON file
-- moves the user into the main chat only after successful auth
+- Listen for "Hi" and "Hello" from any user
+- Respond
 
 The key pattern is:
 
 ```python
 def on_receive(user_id, channel, message):
-    if channel != f"auth-{user_id}":
-        update_var(user_id, "channel", f"auth-{user_id}")
-        send("authbot", f"auth-{user_id}", "You must authenticate first.")
-        return "Shadowed"
+    text = (message or "").strip()
+    low = text.lower()
 
-    ...
-    return "Shadowed"
+    greeting = TRIGGERS.get(low)
+    if greeting is None:
+        return
+
+    sender_name = get_name(user_id)
+
+    reply = f"{greeting}, {sender_name}!"
+    send(BOT_NAME, channel, reply)
 ```
-
-This prevents normal chat messages from being broadcast until the plugin decides the user is allowed to participate.
 
 ## 7. Best practices
 
 - Keep plugin code small and focused.
-- Use plugins for validation, moderation, auth, and bot behavior.
 - Avoid blocking the server thread with long sleeps or network calls.
 - Save persistent data in a file in `on_shutdown()`.
 - Fail gracefully: exceptions in plugin handlers are caught and printed by the server, but the server keeps running.
