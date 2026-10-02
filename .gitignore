@@ -1,0 +1,6 @@
+.*
+!/.gitignore
+!/.dockerignore
+__pycache__
+*.json
+*.log

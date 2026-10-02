@@ -1,0 +1,8 @@
+services:
+    server:
+        build:
+            context: .
+        ports:
+            - 3355:3355
+        volumes:
+            - ./.var:/app/var
